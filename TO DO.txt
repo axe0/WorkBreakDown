@@ -1,0 +1,5 @@
+1. Rewrite time update system
+	- save current time, provide end time, in real-time check if the current time has exceeded the end time
+
+2. When startTime is greater than 1, disable updating
+

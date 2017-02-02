@@ -1,0 +1,17 @@
+8-3-2016: 	added page for dynamical creating of database
+		added page for small overview of all databases/projects
+
+15-3-2016:	Code for inserting has been optimalized
+
+17-3-2016:	Added function for inserting 1 job
+		added file to keep all PHP functions together
+		Updated WorkBreakDown excel file
+
+5-4-2016:	Bugs fixed with timer
+
+7-4-2016:	Small bug fixed that caused the 'Do' part of the time to not update proper due to a problem with updating
+		the validation of FinishTime
+	
+30-8-2016: Optimized code CreateTable to remove redundancy
+		KNOWN BUGS:
+		- Create table, id 16 automatically

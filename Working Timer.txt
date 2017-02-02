@@ -1,0 +1,3 @@
+if checkreservetime != reservetime > update checkreservetime with value of reservetime and add time of reservetime to Do
+
+if (checkfinishtime != finishtime) || (checkstarttime != starttime) > update reservetime > addtime(do, reservetime) > update checkreservetime
