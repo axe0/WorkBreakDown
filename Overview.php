@@ -5,9 +5,10 @@ if($_GET['p'] == NULL){
 	echo('<script>setTimeout(function (){window.location.href = "/WorkBreakDown/Index.php";}, 0);</script>');
 }
 
-//echo '<pre>';
+echo '<pre>';
 //var_dump($_SESSION['q']);
-//echo '</pre>';
+echo '</pre>';
+//unset($_SESSION['q']);
 ?>
 <html>
 <head>
@@ -80,16 +81,18 @@ if($_GET['p'] == NULL){
 				<label id="plan" for="plan"><?php echo $data['Plan']; ?></label>
 			</td>
 			<?php
-			if(($data['Do'] >= $data['Plan']) === TRUE){
+			if(($data['Do'] > $data['Plan']) === TRUE){
 				echo "<td style='background-color: red;' align='center' width='100px' >
 					<label id=do for=do[$data[id]]>";
+				UpdateTime();
 				CalculateTime($data['id']);
 				echo "</label>
 					</td>";
 			}
-			if(($data['Do'] < $data['Plan']) === true){
+			if(($data['Do'] <= $data['Plan']) === true){
 				echo "<td align='center' width='100px' >
 					<label id=do for=do[$data[id]]>";
+				UpdateTime();
 				CalculateTime($data['id']);
 				echo "</label>
 					</td>";
@@ -109,19 +112,22 @@ if($_GET['p'] == NULL){
 			</td>
 			<td bgcolor="white">
 				<?php
-				if($data['StartTime'] == NULL){
+				if($data['StartTimeOn'] == '1'){
 					?>
 					<a href="Overview.php?p=<?php echo($_GET['p']); ?>&time=1&id=<?php  echo $data['id']; ?>" class="starttijd">Start tijd</a><br>
 					<?php
 				}
+				if($data['EndTimeOn'] == '1'){
+					?>
+					<a href="Overview.php?p=<?php echo($_GET['p']); ?>&timer=1&id=<?php  echo $data['id']; ?>" class="stoptijd">Stop tijd</a><br>
+					<?php
+				}
 				?>
-				<a href="Overview.php?p=<?php echo($_GET['p']); ?>&timer=1&id=<?php  echo $data['id']; ?>" class="stoptijd">Stop tijd</a><br>
 				<a href="Update.php?p=<?php echo $_GET['p']; ?>&id=<?php  echo $data['id']; ?>">Update</a><br>
 				<a href="Delete.php?p=<?php echo $_GET['p']; ?>">Verwijder taak</a>
 			</td>
 		</tr>
 	<?php
-		UpdateTime();
 	}
 	?>
 	</table>

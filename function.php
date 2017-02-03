@@ -89,13 +89,15 @@ function CreateTable(){
 				`MoSCoW` varchar(1) NOT NULL,
 				`Plan` datetime NOT NULL,
 				`Do` datetime NULL,
-				`StartTime` datetime NULL,
-				`FinishTime` datetime NULL,
+				`StartTime` tiime NULL,
+				`FinishTime` time NULL,
+				`StartTimeOn` tinyint(1),
+				`EndTimeOn` tinyint(1),
 				`DifferenceTime` time NULL,
 				`CheckDifferenceTime` time NULL,
 				`Check` varchar(255) NULL,
 				`Act` varchar(255) NULL
-				) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=latin1;";
+				) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=latin1; alter table $_POST[projectname] set `StartTimeOn` = 1, `EndTimeOn` = 0";
 				
 				$queryInsert = "INSERT INTO `workbreakdown`.`$_POST[projectname]` (`Taak`, `Predecessor`, `Developer`, `MoSCoW`, `Plan`) VALUES ('{$_SESSION['inputs'][1][$i]}', '{$_SESSION['inputs'][2][$i]}', '{$_SESSION['inputs'][3][$i]}', '{$_SESSION['inputs'][4][$i]}', '{$_SESSION['inputs'][5][$i]}');";
 				CreateTableInput($CreateNewTable, $queryInsert);
@@ -134,8 +136,9 @@ function UpdateTime(){
 		$queryUpdateTime = "UPDATE `workbreakdown`.`".$_GET['p']."` SET `StartTime` = NOW() WHERE `".$_GET['p']."`.`id` = ".$_GET['id'].";";
 		$_SESSION['q'][] = $queryUpdateTime;
 		if(mysqli_query($GLOBALS['conn'], $queryUpdateTime)){
+			mysqli_query($GLOBALS['conn'], "update `test` set `StartTimeOn` = '0', `EndTimeOn` = '1' where `id` = '{$_GET['id']}';");
+			$_SESSION['q'][] = "update `test` set `StartTimeOn` = '0', `EndTimeOn` = '1' where `id` = '{$_GET['id']}';";
 			//header('Location:http://localhost/WorkBreakDown/Overview.php?p='.$_GET['p']);
-			//echo '<div align=center>Tijd met succes geupdated: '.$queryUpdateTime.'</div>';
 		}
 		else{
 			die('<div align=center>error: '.mysqli_error($GLOBALS['conn']));
@@ -145,44 +148,48 @@ function UpdateTime(){
 		$queryUpdateTimer = "UPDATE `workbreakdown`.`".$_GET['p']."` SET `FinishTime` = NOW() WHERE `id` = ".$_GET['id'].";";
 		$_SESSION['q'][] = $queryUpdateTimer;
 		if(mysqli_query($GLOBALS['conn'], $queryUpdateTimer)){
-			//echo '<div align=center>Tijd stop met succes geupdated: '.$queryUpdateTimer.'</div>';
+			mysqli_query($GLOBALS['conn'], "update `test` set `EndTimeOn` = '0', `StartTimeOn` = '1' where `id` = '{$_GET['id']}';");
+			$_SESSION['q'][] = "update `test` set `EndTimeOn` = '0', `StartTimeOn` = '1' where `id` = '{$_GET['id']}';";
 			//header('Location:http://localhost/WorkBreakDown/Overview.php?p='.$_GET['p']);
 		}
 	}
 }
 
 function CalculateTime($id){
-	$query = "SELECT * FROM `".$_GET['p']."` WHERE `id`=".$id;	
+	$query = "SELECT * FROM `".$_GET['p']."` WHERE `id`=".$id;
 	
-	$queryTotalTime = "UPDATE `workbreakdown`.`".$_GET['p']."` set `Do` = (SELECT TIMEDIFF(`FinishTime`, `StartTime`)), `DifferenceTime` = (SELECT TIMEDIFF(`FinishTime`, `StartTime`)) WHERE `id` = $id";
-	$_SESSION['q'][] = $queryTotalTime;
-	mysqli_query($GLOBALS['conn'], $queryTotalTime);
-	
-	$queryCheckDifferenceTime = "SELECT * FROM `workbreakdown`.`".$_GET['p']."` WHERE `DifferenceTime` = `CheckDifferenceTime` AND `id` = ".$id;
-	$_SESSION['q'][] = $queryCheckDifferenceTime;
-	
-	if(mysqli_num_rows(mysqli_query($GLOBALS['conn'], $queryCheckDifferenceTime)) == 0){
-	$queryUpdateCheckDifferenceTime = "UPDATE `workbreakdown`.`".$_GET['p']."` set `CheckDifferenceTime` = (SELECT TIMEDIFF(`FinishTime`, `StartTime`)) WHERE `id` = ".$id;
-	$_SESSION['q'][] = $queryUpdateCheckDifferenceTime;
-		if(mysqli_query($GLOBALS['conn'], $queryUpdateCheckDifferenceTime)){
-			$queryAddTime = "UPDATE `workbreakdown`.`".$_GET['p']."` set `Do` = `Do` + `DifferenceTime` WHERE `id` = ".$id;
-			$_SESSION['q'][] = $queryAddTime;
-			$result = mysqli_query($GLOBALS['conn'], $query);
-			
-			if(mysqli_query($GLOBALS['conn'], $queryAddTime)){
-				while($data = mysqli_fetch_assoc($result)){
-					echo $data['Do'];
+	if(isset($_GET['timer'])){
+		
+		$queryTotalTime = "UPDATE `workbreakdown`.`".$_GET['p']."` set `DifferenceTime` = `DifferenceTime` + TIMEDIFF(`FinishTime`, `StartTime`) WHERE `id` = $id";
+		$_SESSION['q'][] = $queryTotalTime;
+		mysqli_query($GLOBALS['conn'], $queryTotalTime);
+		
+		$queryCheckDifferenceTime = "SELECT * FROM `workbreakdown`.`".$_GET['p']."` WHERE `DifferenceTime` = `CheckDifferenceTime` AND `id` = ".$id;
+		$_SESSION['q'][] = $queryCheckDifferenceTime;
+		
+		if(mysqli_num_rows(mysqli_query($GLOBALS['conn'], $queryCheckDifferenceTime)) == 0){
+		$queryUpdateCheckDifferenceTime = "UPDATE `workbreakdown`.`".$_GET['p']."` set `CheckDifferenceTime` = `DifferenceTime` WHERE `id` = ".$id;
+		$_SESSION['q'][] = $queryUpdateCheckDifferenceTime;
+			if(mysqli_query($GLOBALS['conn'], $queryUpdateCheckDifferenceTime)){
+				$queryAddTime = "UPDATE `workbreakdown`.`".$_GET['p']."` set `Do` = `DifferenceTime` WHERE `id` = ".$id;
+				$_SESSION['q'][] = $queryAddTime;
+				$result = mysqli_query($GLOBALS['conn'], $query);
+				
+				if(mysqli_query($GLOBALS['conn'], $queryAddTime)){
+					while($data = mysqli_fetch_assoc($result)){
+						echo $data['Do'];
+					}
+					echo '<script>setTimeout(function (){window.location.href = "/WorkBreakDown/Overview.php?p='.$_GET['p'].'";}, 0);</script>';
+					//header('Location:http://localhost/WorkBreakDown/Overview.php?p='.$_GET['p']);
 				}
-				header('Location:http://localhost/WorkBreakDown/Overview.php?p='.$_GET['p']);
 			}
 		}
 	}
-	else{
-		$result = mysqli_query($GLOBALS['conn'], $query);
-		
-		while($data = mysqli_fetch_assoc($result)){
-			echo $data['Do']; 	
-		}
+	
+	$result = mysqli_query($GLOBALS['conn'], $query);
+	
+	while($data = mysqli_fetch_assoc($result)){
+		echo $data['Do']; 	
 	}
 }
 
